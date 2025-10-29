@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login & Randomizer — Demo</title>
+  <style>
+    :root{
+      --bg: #0f1724; /* default dark-purple */
+      --card: #131825;
+      --text: #e6e6f0;
+      --accent: #8b5cf6; /* purple */
+      --accent-2: #7c3aed;
+      --danger: #ef4444;
+      --glass: rgba(255,255,255,0.03);
+    }
+
+    /* Red theme variables (applied with [data-theme="red"]) */
+    :root[data-theme="red"]{
+      --bg: #0b0b0b;
+      --card: #111111;
+      --text: #f8f8f8;
+      --accent: #ef4444;
+      --accent-2: #b91c1c;
+      --glass: rgba(255,255,255,0.03);
+    }
+
+    /* Light theme (white-black-red) */
+    :root[data-theme="light"]{
+      --bg: #ffffff;
+      --card: #f5f5f5;
+      --text: #111111;
+      --accent: #ef4444;
+      --accent-2: #b91c1c;
+      --glass: rgba(0,0,0,0.04);
+    }
+
+    html,body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+    body{
+      margin:0;
+      font-family: Inter, Roboto, system-ui, -apple-system, "Segoe UI", "Noto Sans", "Helvetica Neue", Arial;
+      background: radial-gradient(1000px 600px at 10% 10%, rgba(124,58,237,0.08), transparent), linear-gradient(180deg,var(--bg), #050507);
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .container{
+      width:100%;
+      max-width:980px;
+      display:grid;
+      grid-template-columns: 380px 1fr;
+      gap:24px;
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+      border-radius:12px;
+      padding:20px;
+      box-shadow:0 6px 20px rgba(2,6,23,0.6);
+      border:1px solid rgba(255,255,255,0.03);
+      backdrop-filter: blur(6px);
+    }
+
+    /* Login column */
+    .left{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:stretch;
+    }
+
+    h1{margin:0 0 6px 0;font-size:20px}
+    p.lead{margin:0;color:rgba(255,255,255,0.7);font-size:13px}
+
+    label{display:block;font-size:13px;margin-top:10px;color:rgba(255,255,255,0.8)}
+    input[type=text],input[type=password]{
+      width:100%;
+      padding:12px 14px;
+      margin-top:6px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.04);
+      background:var(--card);
+      color:var(--text);
+      outline:none;
+      box-sizing:border-box;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:10px;
+      border:0;
+      cursor:pointer;
+      font-weight:600;
+      transition:transform .12s ease, box-shadow .12s ease;
+      background:linear-gradient(90deg,var(--accent),var(--accent-2));
+      color:white;
+      box-shadow:0 6px 18px rgba(124,58,237,0.12);
+    }
+    .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.05);color:var(--text);font-weight:500}
+    .btn:active{transform:translateY(1px)}
+
+    .small{font-size:13px;color:rgba(255,255,255,0.7)}
+
+    /* Right column - Main app */
+    .right{display:flex;flex-direction:column;gap:16px}
+
+    .toolbar{display:flex;justify-content:space-between;align-items:center}
+    .theme-switch{display:flex;gap:8px;align-items:center}
+    .chip{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);cursor:pointer}
+
+    .random-card{
+      display:flex;flex-direction:column;align-items:center;gap:18px;padding:30px;border-radius:12px;min-height:300px;justify-content:center
+    }
+
+    .wheel{width:260px;height:260px;border-radius:50%;display:grid;place-items:center;position:relative;background:conic-gradient(from 90deg, rgba(255,255,255,0.02) 0 25%, rgba(255,255,255,0.01) 25% 50%, rgba(255,255,255,0.02) 50% 75%, rgba(255,255,255,0.01) 75% 100%);border:6px solid rgba(255,255,255,0.03)}
+    .wheel .center{position:absolute;width:84px;height:84px;border-radius:50%;display:grid;place-items:center;background:var(--card);font-weight:700}
+
+    .result{font-size:18px;font-weight:700}
+
+    .items-list{display:flex;flex-wrap:wrap;gap:8px}
+    .item-pill{padding:8px 10px;border-radius:999px;background:rgba(0,0,0,0.15);border:1px solid rgba(255,255,255,0.03)}
+
+    footer{font-size:12px;color:rgba(255,255,255,0.5);text-align:center;margin-top:10px}
+
+    /* Responsive */
+    @media (max-width:880px){
+      .container{grid-template-columns:1fr;}
+    }
+
+    /* TODO: update font to English font family (e.g. Inter/Roboto) */
+  /* TODO: center login form + enlarge */
+  /* TODO: improve theme color palettes */
+</style>
+</head>
+<body>
+  <div class="container" id="app-root">
+    <!-- LEFT: Login / profile -->
+    <div class="card left" id="login-card">
+      <div>
+        <h1>เข้าสู่ระบบ</h1>
+        <p class="lead">ตัวอย่าง: ใช้เพื่อเรียนรู้ — ระบบเป็น client-side demo เท่านั้น</p>
+      </div>
+
+      <div>
+        <label for="username">ชื่อผู้ใช้</label>
+        <input id="username" type="text" placeholder="ตัวอย่าง: demo" />
+        <label for="password">รหัสผ่าน</label>
+        <input id="password" type="password" placeholder="ตัวอย่าง: demo123" />
+
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn" id="loginBtn">ลงชื่อเข้าใช้</button>
+          <button class="btn secondary" id="demoBtn">ใช้บัญชีตัวอย่าง</button>
+        </div>
+
+        <p class="small" style="margin-top:12px">หมายเหตุ: ระบบเก็บสถานะใน localStorage ของเบราว์เซอร์เท่านั้น — ไม่ปลอดภัยสำหรับการใช้งานจริง</p>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="small">ธีมตัวอย่าง</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <div class="chip" data-theme="default">ม่วงเข้ม</div>
+          <div class="chip" data-theme="red">ดำ/แดง</div>
+          <div class="chip" data-theme="light">ขาว/ดำ/แดง</div>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="small">เครดิต</div>
+          <div class="small">Cr.dasiaWTF (ใส่ตามที่ต้องการ)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Main app (hidden until logged in) -->
+    <div class="card right" id="main-card" style="display:none">
+      <div class="toolbar">
+        <div>
+          <div style="font-weight:800;font-size:16px">หน้าหลักสุ่มของ</div>
+          <div class="small">ยินดีต้อนรับ, <span id="profile-name"></span></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="theme-switch small">Theme</div>
+          <div class="chip" id="logoutBtn">ออกจากระบบ</div>
+        </div>
+      </div>
+
+      <div class="random-card">
+        <div style="text-align:center">
+          <div class="result" id="resultText">กดปุ่มใต้เพื่อสุ่ม</div>
+          <div class="small">ระบบสุ่มตัวอย่าง — ปรับรายการได้ในเมนู</div>
+        </div>
+
+        <div class="wheel" id="wheel">
+          <div class="center">สุ่ม</div>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="btn" id="spinBtn">สุ่ม</button>
+          <button class="btn secondary" id="addItemBtn">เพิ่มไอเท็ม</button>
+        </div>
+
+        <div style="width:100%;max-width:700px;margin-top:10px">
+          <div class="small">รายการไอเท็ม</div>
+          <div class="items-list" id="itemsList"></div>
+        </div>
+      </div>
+
+      <footer>ไฟล์ตัวอย่าง — ไม่ใช่ระบบล็อกอินที่ปลอดภัยสำหรับโปรดักชัน</footer>
+    </div>
+
+  </div>
+
+  <script>
+    // Simple client-side demo login (do NOT use for real auth)
+    const DEMO = {user:'demo', pass:'demo123'};
+    const loginCard = document.getElementById('login-card');
+    const mainCard = document.getElementById('main-card');
+    const loginBtn = document.getElementById('loginBtn');
+    const demoBtn = document.getElementById('demoBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const profileName = document.getElementById('profile-name');
+
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+
+    // Items for randomizer (default)
+    const defaultItems = ['เหรียญทอง','ดาบไม้','หัวกระโหลก','หมวกเวทย์','Potion','หัวใจ','เพชร','หนังสัตว์'];
+
+    function getItems(){
+      try{
+        const raw = localStorage.getItem('rnd_items');
+        if(raw) return JSON.parse(raw);
+      }catch(e){console.warn(e)}
+      return defaultItems.slice();
+    }
+    function saveItems(arr){ localStorage.setItem('rnd_items', JSON.stringify(arr)); }
+
+    function renderItems(){
+      const wrap = document.getElementById('itemsList');
+      wrap.innerHTML='';
+      getItems().forEach((it,idx)=>{
+        const el = document.createElement('div');
+        el.className='item-pill';
+        el.textContent = it;
+        el.title = 'คลิกเพื่อลบ';
+        el.style.cursor='pointer';
+        el.onclick = ()=>{ if(confirm('ลบ "'+it+'" ?')){ const arr=getItems(); arr.splice(idx,1); saveItems(arr); renderItems(); }};
+        wrap.appendChild(el);
+      })
+    }
+
+    // Theme handling
+    document.querySelectorAll('.chip[data-theme]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const t = el.getAttribute('data-theme');
+        if(t==='default') document.documentElement.removeAttribute('data-theme');
+        else document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('site_theme', t);
+      })
+    });
+    // restore theme
+    (function(){
+      const t = localStorage.getItem('site_theme');
+      if(t && t!=='default') document.documentElement.setAttribute('data-theme', t);
+    })();
+
+    // Login flow
+    function doLogin(user){
+      localStorage.setItem('logged_user', user);
+      showMain(user);
+    }
+    function showMain(user){
+      loginCard.style.display='none';
+      mainCard.style.display='flex';
+      profileName.textContent = user;
+      renderItems();
+    }
+    function doLogout(){
+      localStorage.removeItem('logged_user');
+      loginCard.style.display='flex';
+      mainCard.style.display='none';
+    }
+
+    loginBtn.addEventListener('click', ()=>{
+      const u = usernameInput.value.trim();
+      const p = passwordInput.value;
+      if(!u || !p){ alert('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน'); return; }
+      // demo auth
+      if(u===DEMO.user && p===DEMO.pass){ doLogin(u); }
+      else{ alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง (demo/demo123)'); }
+    });
+    demoBtn.addEventListener('click', ()=>{ usernameInput.value=DEMO.user; passwordInput.value=DEMO.pass; loginBtn.click(); });
+    logoutBtn.addEventListener('click', ()=>{ if(confirm('ต้องการออกจากระบบหรือไม่?')) doLogout(); });
+
+    // Auto-login if session present
+    (function(){
+      const u = localStorage.getItem('logged_user');
+      if(u){ showMain(u); }
+    })();
+
+    // Randomizer logic
+    const spinBtn = document.getElementById('spinBtn');
+    const wheel = document.getElementById('wheel');
+    const resultText = document.getElementById('resultText');
+    const addItemBtn = document.getElementById('addItemBtn');
+
+    function pickRandom(){
+      const arr = getItems();
+      if(arr.length===0){ alert('รายการว่าง — เพิ่มไอเท็มก่อน'); return null; }
+      const i = Math.floor(Math.random()*arr.length);
+      return {index:i, value:arr[i]};
+    }
+
+    function animateSpin(cb){
+      // simple rotation animation using CSS transform
+      const rotations = Math.floor(Math.random()*6)+6; // 6 - 11 rounds
+      const extra = Math.random()*360;
+      const deg = rotations*360 + extra;
+      wheel.style.transition = 'transform 3s cubic-bezier(.08,.8,.12,1)';
+      wheel.style.transform = `rotate(${deg}deg)`;
+      setTimeout(()=>{
+        wheel.style.transition = '';
+        wheel.style.transform = `rotate(${extra}deg)`; // keep final position small
+        if(cb) cb();
+      }, 3200);
+    }
+
+    spinBtn.addEventListener('click', ()=>{
+      const pick = pickRandom();
+      if(!pick) return;
+      resultText.textContent = 'กำลังสุ่ม...';
+      animateSpin(()=>{
+        resultText.textContent = 'ผลลัพธ์: ' + pick.value;
+        // small flash
+        const old = document.body.style.background;
+        document.body.animate([{filter:'brightness(1.15)'},{filter:'brightness(1)'}],{duration:400});
+      });
+    });
+
+    addItemBtn.addEventListener('click', ()=>{
+      const name = prompt('เพิ่มไอเท็มใหม่ (ตัวอย่าง: "ทองคำ")');
+      if(name){ const arr=getItems(); arr.push(name.trim()); saveItems(arr); renderItems(); }
+    });
+
+    // Make clicking the wheel also spin
+    wheel.addEventListener('click', ()=>{ spinBtn.click(); })
+
+    // Initial render
+    renderItems();
+  </script>
+</body>
+</html>
